@@ -35,7 +35,7 @@ from twisted.internet import reactor
 from twisted.conch.ssh.keys import Key
 from twisted.python import log
 from twisted.application import internet, service
-
+sys.path.append(".");
 from honssh.config import Config
 from honssh import server, interact
 
