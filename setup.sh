@@ -2,6 +2,7 @@
 function color_print {
   if [ "$1" == "green" ];then echo -e "\e[92m" $2 "\e[0m\c";fi
   if [ "$1" == "red" ];then   echo -e "\e[91m" $2 "\e[0m\c";fi
+  if [ "$1" == "yellow" ];then echo -e "\e[32m" $2 "\e[0m\c";fi
 }
 
 function invalidIp {
@@ -11,7 +12,7 @@ function invalidIp {
 }
 
 function setup_linux {
-  echo -e "[*]\c";color_print "green" "We will install lxc based container to run the traget system"
+  echo -e "[*]\c";color_print "green" "We will install lxc based container to run the traget system\n"
   dpkg -s lxd
   if [ $? -ne 0 ]
   then
@@ -41,12 +42,31 @@ function setup_linux {
   color_print "green" "HoneyPot IP";color_print "red" $container_ip
   container_port=22
   #sed -i "/ssh_addr =/c\ssh_addr = $ssh_addr" honssh.cfg
+  #sed -i "//c\"
   sed -i "/honey_ip =/c\honey_ip = $container_ip" honssh.cfg
   sed -i "/honey_port =/c\honey_port = $container_port" honssh.cfg
+  lxc exec system  -- sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config
+  #lxc exec system cat /etc/ssh/sshd_config
+  lxc exec system service sshd restart
+  echo -e "[*]\c";color_print "green" "Machine created, Enter the user to create ";read username;
+  echo -e "[*]\c";color_print "green" "Enter password for the $username ";read password;
+  lxc exec system -- useradd -b "/home/$username" $username
+  lxc exec system -- bash -c "echo -e \"$password\n$password\" | passwd $username"
+  echo -e "[$username]\nreal_password = $password\nfake_passwords = " > users.cfg
+  echo -e "[*]\c";color_print "green" "user.cfg";color_print "yellow" "created, Please add fake password for $username\n"
 }
 
 function setup_windows {
-  color_print "red" "todo"
+  echo -e "[*]\c";color_print "yellow" "For the Traget Windows system .. Virtual Box Will be used"
+  echo -e "[*]\c";color_print "yellow" "Checking If VBox is installed or not\n"
+  dpkg -s virtualbox
+  if [ $? -ne 0 ];then color_print "red" "Virtual Box not found installing\n";
+    apt-get install virtualbox
+    if [ $? -eq 0 ];then color_print "red" "Unbale to virtual box ... Quiting";exit ;fi
+    echo -e "[*]\c";color_print "yello" "Checking vboxmanage\n";which vboxmanage;
+    if [ $? -ne 0 ];then color_print "red" "Vbox Missing .. Exiting";exit;fi
+  fi
+
 }
 
 if [ $EUID -ne 0 ];then color_print "red" "Please Run as Root..\n";exit;fi
@@ -72,8 +92,11 @@ sed -i "/ssh_addr =/c\ssh_addr = $ssh_addr" honssh.cfg
 sed -i "/ssh_port =/c\ssh_port = $ssh_port" honssh.cfg
 
 echo -e "[*]\c";color_print "green" "Enter the HoneyPot sensor Name[sshProxy]"
-read name
-if [[ -z "${name// }" ]];then name="sshPorxy";fi
+read sensor_name
+if [[ -z "${name// }" ]];then sensor_name="sshPorxy";fi
+
+sed -i "/sensor_name = /c\sensor_name = $sensor_name" honssh.cfg
+sed -i "/client_addr = /c\client_addr = 0.0.0.0" honssh.cfg
 
 echo -e "[*]\c";color_print "green" "Please specify the type of HoneyPot to build Linux/Windows [Linux]"
 read target
