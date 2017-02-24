@@ -380,7 +380,7 @@ port = 5123
 # input: true/false
 # required: YES
 # default: false
-enabled = false
+enabled = true
 
 # Location of the users.cfg file
 #
