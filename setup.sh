@@ -2,7 +2,7 @@
 function color_print {
   if [ "$1" == "green" ];then echo -e "\e[92m" $2 "\e[0m\c";fi
   if [ "$1" == "red" ];then   echo -e "\e[91m" $2 "\e[0m\c";fi
-  if [ "$1" == "yellow" ];then echo -e "\e[32m" $2 "\e[0m\c";fi
+  if [ "$1" == "yellow" ];then echo -e "\e[33m" $2 "\e[0m\c";fi
 }
 
 function invalidIp {
@@ -30,7 +30,7 @@ function setup_linux {
   fi
   lxc launch ubuntu16 system
   lxc stop system
-  echo -e "[*]\c";color_print "green" "Container is not attached to the Network..Bridging it[honeypotBr]\n"
+  echo -e "[*]\c";color_print "green" "Container is not attached to the Network..Bridging it[honeypotBr]"
   lxc network create honeypotBr
   lxc network attach honeypotBr system eth0
   lxc start system
@@ -39,7 +39,7 @@ function setup_linux {
   container_ip=$(lxc info system | grep -m1 eth0..inet | cut -f 3)
   #echo $container_ip
   if ! invalidIp container_ip;then echo -e "[*]\c";color_print "red" "Unbale to fetch the IP of the container !\nSet it Manually if Possible";exit;fi
-  color_print "green" "HoneyPot IP";color_print "red" $container_ip
+  echo -e "[*]\c";color_print "green" "HoneyPot IP";color_print "red" $container_ip;echo -e "\n";
   container_port=22
   #sed -i "/ssh_addr =/c\ssh_addr = $ssh_addr" honssh.cfg
   #sed -i "//c\"
@@ -57,16 +57,37 @@ function setup_linux {
 }
 
 function setup_windows {
-  echo -e "[*]\c";color_print "yellow" "For the Traget Windows system .. Virtual Box Will be used"
+  echo -e "[*]\c";color_print "yellow" "For the Traget Windows system .. Virtual Box Will be used\n"
   echo -e "[*]\c";color_print "yellow" "Checking If VBox is installed or not\n"
   dpkg -s virtualbox
-  if [ $? -ne 0 ];then color_print "red" "Virtual Box not found installing\n";
-    apt-get install virtualbox
-    if [ $? -eq 0 ];then color_print "red" "Unbale to virtual box ... Quiting";exit ;fi
+  if [ $? -ne 0 ];then echo -e "[*]\c";color_print "red" "Virtual Box not found installing\n";
+    apt-get install virtualbox virtualbox-qt -y;
+    if [ $? -eq 0 ];then echo -e "[*]\c";color_print "red" "Unbale to install virtual box ... Quiting";exit ;fi
     echo -e "[*]\c";color_print "yello" "Checking vboxmanage\n";which vboxmanage;
     if [ $? -ne 0 ];then color_print "red" "Vbox Missing .. Exiting";exit;fi
   fi
+  echo -e "[*]\c";color_print "green" "VBox Successfully installed"
+  ls win7.zip
+  if [ $? -ne 0 ];
+  then
+    echo -e "[*]\c";color_print "red" "Windows image file not found locally\n"
+    echo -e "[*]\c";color_print "yellow" "Downloading windows image file.. Please Be patient\n"
+    url="https://az412801.vo.msecnd.net/vhd/VMBuild_20141027/VirtualBox/IE10/Windows/IE10.Win7.For.Windows.VirtualBox.zip"
+    wget $url -O win7.zip
+  fi
+  #unzip win7.zip
+  #mv 'IE10 - Win7.ova' win7.ova
+  vboxmanage list vms | grep win7
+  if [ $? -ne 0 ];then
+    #rm -f /root/VirtualBox VMs/Win7/Win7.vbox
+    vboxmanage import --vsys 0 --cpus 1 --memory 2048 --vmname Win7 'IE10 - Win7.ova';
+    #vboxmanage natnetwork add --netname "natnet1" --network "192.168.15.0/24" --enable --dhcp on
+    #vboxmanage modifyvm Win7 --nic1 natnetwork --nat-network1 natnet1
+    vboxmanage modifyvm Win7 --nic1 nat
+    vboxmanage hostonlyif create
+    vboxmanage modifyvm Win7 --nic2 hostonly --hostonlyadapter1 vboxnet0
 
+  fi
 }
 
 if [ $EUID -ne 0 ];then color_print "red" "Please Run as Root..\n";exit;fi
@@ -101,4 +122,6 @@ sed -i "/client_addr = /c\client_addr = 0.0.0.0" honssh.cfg
 echo -e "[*]\c";color_print "green" "Please specify the type of HoneyPot to build Linux/Windows [Linux]"
 read target
 
+if [[ -z "${target// }" ]];then target="Linux";fi
 if [ "$target" == "Linux" ];then setup_linux ;fi
+if [ "$target" == "Windows" ]; then setup_windows ;fi
