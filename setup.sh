@@ -11,6 +11,16 @@ function invalidIp {
   fi
 }
 
+#this function secure honeypot abusing by blocking all outgoing ping and ssh connection
+function secure_honeypot {
+  iptables -A FORWARD  -p "tcp" --dport 22 -m state --state NEW,ESTABLISHED -j DROP;
+  iptables -A FORWARD  -p "tcp" --sport 22 -m state --state ESTABLISHED -j DROP;
+  #iptables -A INPUT -p "tcp" --sport 22 -m state --state NEW,ESTABLISHED -j DROP;
+  #iptables -A OUTPUT -p "tcp" --dport 22 -m state --state NEW,ESTABLISHED -j DROP;
+  #iptables -A FORWARD -p icmp --icmp-type echo-request -j DROP;
+  iptables -A OUTPUT -p icmp --icmp-type 8 -j DROP
+}
+
 function setup_linux {
   echo -e "[*]\c";color_print "green" "We will install lxc based container to run the traget system\n"
   dpkg -s lxd
@@ -30,15 +40,15 @@ function setup_linux {
   fi
   lxc launch ubuntu16 system
   lxc stop system
-  echo -e "[*]\c";color_print "green" "Container is not attached to the Network..Bridging it[honeypotBr]"
-  echo -e "[*]\c";color_print "yellow" "Checking if honeypot Bridge Exists or not"
-  lxc network show honeypotBr
+  echo -e "[*]\c";color_print "green" "Container is not attached to the Network..Bridging it[honeypotBr]\n"
+  echo -e "[*]\c";color_print "yellow" "Checking if honeypot[systemBr] Bridge Exists or not"
+  lxc network show systemBr
   if [ $? -ne 0 ]
   then
-    echo -e "[*]\c";color_print "green" "Bridge Exists Attaching only"
-    lxc network create honeypotBr
+    echo -e "[*]\c";color_print "green" "Bridge donot Exists creating"
+    lxc network create systemBr
   fi
-  lxc network attach honeypotBr system default eth0
+  lxc network attach systemBr system default eth0
   lxc start system
   #wait for the system to get bridge
   sleep 5
@@ -49,18 +59,23 @@ function setup_linux {
   container_port=22
   #sed -i "/ssh_addr =/c\ssh_addr = $ssh_addr" honssh.cfg
   #sed -i "//c\"
+
+  sed -i "/client_addr = /c\client_addr = $honey_ip" honssh.cf
   sed -i "/honey_ip =/c\honey_ip = $container_ip" honssh.cfg
   sed -i "/honey_port =/c\honey_port = $container_port" honssh.cfg
+
   lxc exec system  -- sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config
   #lxc exec system cat /etc/ssh/sshd_config
   lxc exec system service sshd restart;
   lxc exec system -- groupdel admin
   echo -e "[*]\c";color_print "green" "Machine created, Enter the user to create ";read username;
   echo -e "[*]\c";color_print "green" "Enter password for the $username ";read password;
-  lxc exec system -- useradd -b "/home/$username" $username
+  lxc exec system -- useradd -m $username -s /bin/bash
   lxc exec system -- bash -c "echo -e \"$password\n$password\" | passwd $username"
   echo -e "[$username]\nreal_password = $password\nfake_passwords = " > users.cfg
   echo -e "[*]\c";color_print "green" "user.cfg";color_print "yellow" "created, Please add fake password for $username\n"
+
+  secure_honeypot;
 }
 
 function setup_windows {
@@ -93,7 +108,6 @@ function setup_windows {
     vboxmanage modifyvm Win7 --nic1 nat
     vboxmanage hostonlyif create
     vboxmanage modifyvm Win7 --nic2 hostonly --hostonlyadapter1 vboxnet0
-
   fi
 }
 
@@ -124,7 +138,7 @@ read sensor_name
 if [[ -z "${name// }" ]];then sensor_name="sshPorxy";fi
 
 sed -i "/sensor_name = /c\sensor_name = $sensor_name" honssh.cfg
-sed -i "/client_addr = /c\client_addr = 0.0.0.0" honssh.cfg
+#sed -i "/client_addr = /c\client_addr = $honey_ip" honssh.cfg
 
 echo -e "[*]\c";color_print "green" "Please specify the type of HoneyPot to build Linux/Windows [Linux]"
 read target
