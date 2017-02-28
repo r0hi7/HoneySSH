@@ -60,7 +60,7 @@ function setup_linux {
   #sed -i "/ssh_addr =/c\ssh_addr = $ssh_addr" honssh.cfg
   #sed -i "//c\"
 
-  sed -i "/client_addr = /c\client_addr = $honey_ip" honssh.cf
+  #sed -i "/client_addr = /c\client_addr = $honey_ip" honssh.cf
   sed -i "/honey_ip =/c\honey_ip = $container_ip" honssh.cfg
   sed -i "/honey_port =/c\honey_port = $container_port" honssh.cfg
 
@@ -138,7 +138,7 @@ read sensor_name
 if [[ -z "${name// }" ]];then sensor_name="sshPorxy";fi
 
 sed -i "/sensor_name = /c\sensor_name = $sensor_name" honssh.cfg
-#sed -i "/client_addr = /c\client_addr = $honey_ip" honssh.cfg
+sed -i "/client_addr = /c\client_addr = $ssh_addr" honssh.cfg
 
 echo -e "[*]\c";color_print "green" "Please specify the type of HoneyPot to build Linux/Windows [Linux]"
 read target
