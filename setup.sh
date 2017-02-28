@@ -31,8 +31,14 @@ function setup_linux {
   lxc launch ubuntu16 system
   lxc stop system
   echo -e "[*]\c";color_print "green" "Container is not attached to the Network..Bridging it[honeypotBr]"
-  lxc network create honeypotBr
-  lxc network attach honeypotBr system eth0
+  echo -e "[*]\c";color_print "yellow" "Checking if honeypot Bridge Exists or not"
+  lxc network show honeypotBr
+  if [ $? -ne 0 ]
+  then
+    echo -e "[*]\c";color_print "green" "Bridge Exists Attaching only"
+    lxc network create honeypotBr
+  fi
+  lxc network attach honeypotBr system default eth0
   lxc start system
   #wait for the system to get bridge
   sleep 5
@@ -47,7 +53,8 @@ function setup_linux {
   sed -i "/honey_port =/c\honey_port = $container_port" honssh.cfg
   lxc exec system  -- sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config
   #lxc exec system cat /etc/ssh/sshd_config
-  lxc exec system service sshd restart
+  lxc exec system service sshd restart;
+  lxc exec system -- groupdel admin
   echo -e "[*]\c";color_print "green" "Machine created, Enter the user to create ";read username;
   echo -e "[*]\c";color_print "green" "Enter password for the $username ";read password;
   lxc exec system -- useradd -b "/home/$username" $username
