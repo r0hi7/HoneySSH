@@ -24,6 +24,7 @@ function setup_ssh_redirection_system {
     echo -e "[*]\c"; color_print "green" "Adding PC1 to bridge [systemBr]";
     lxc network attach systemBr pc1 default eth0;
     lxc start pc1;
+    sleep 5
     pc1_ip=$(lxc info pc1 | grep -m1 "eth0..inet" | cut -f 3)
     echo -e "[*]\c"; color_print "green" "PC 1 got the IP ";color_print "red" $pc1_ip
     
@@ -97,8 +98,8 @@ function setup_linux {
     echo -e "[*]\c";color_print "green" "user.cfg";color_print "yellow" "created, Please add fake password for $username\n"
 
     setup_ssh_redirection_system;
-    bash ./setup_ssh_redirection_honeypot system $pc1_ip;
-    bash ./setup_ssh_redirection_honeypot pc1 $container_ip;
+    bash ./setup_ssh_redirection_honeypot.sh system $pc1_ip;
+    bash ./setup_ssh_redirection_honeypot.sh pc1 $container_ip;
 
 }
 
