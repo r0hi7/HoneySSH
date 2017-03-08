@@ -45,14 +45,26 @@ function secure_honeypot {
 
 function setup_linux {
     echo -e "[*]\c";color_print "green" "We will install lxc based container to run the traget system\n"
+    lxd_ppa="ppa:ubuntu-lxc/lxd-stable"
+    if ! grep -q "^deb .*$lxd_ppa" /etc/apt/sources.list /etc/apt/sources.list.d/*; then
+        # commands to add the ppa
+	sudo add-apt-repository ppa:ubuntu-lxc/lxd-stable
+	sudo apt update
+    fi    
+
     dpkg -s lxd
+
     if [ $? -ne 0 ]
     then
         echo -e "[*]\c";color_print "red" "lxd not installed"
         color_print "green" "lxd will be installed"
-        apt-get install lxd
+        #apt-get update
+	apt-get install lxd -y
         lxd init
     fi
+    #apt-get update && apt-get upgrade
+    apt-get --only-upgrade install lxd -y
+    
     echo -e "[*]\c";color_print "green" "Chosen Imgae Ubuntu _ 16.04 x86]\n"
     lxc image copy ubuntu:x local: --alias ubuntu16
     lxc info system
