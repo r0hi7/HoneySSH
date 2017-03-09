@@ -12,6 +12,11 @@ function invalidIp {
     fi
 }
 
+function satisfy_deps {
+    pip install -r pip-packs
+    spt install `cat apt-packs`  
+}
+
 function setup_ssh_redirection_system {
     echo -e "[*]\c";color_print "yellow" "Installing ssh redirection system  to trap the attacker"
     lxc info pc1;
