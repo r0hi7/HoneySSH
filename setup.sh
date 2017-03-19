@@ -13,8 +13,8 @@ function invalidIp {
 }
 
 function satisfy_deps {
+    apt install `cat apt-packs`  
     pip install -r pip-packs
-    spt install `cat apt-packs`  
 }
 
 function setup_ssh_redirection_system {
@@ -72,11 +72,13 @@ function setup_linux {
     
     echo -e "[*]\c";color_print "green" "Chosen Imgae Ubuntu _ 16.04 x86]\n"
     lxc image copy ubuntu:x local: --alias ubuntu16
+    #lxc launch ubuntu:16.04 system
     lxc info system
     if [ $? -eq 0 ];then echo -e "[*]\c";color_print "red" "Conatainer Named with system Alredy found..Removing\n";
         lxc stop system;
         lxc delete system;
     fi
+
     lxc launch ubuntu16 system
     lxc stop system
     echo -e "[*]\c";color_print "green" "Container is not attached to the Network..Bridging it[honeypotBr]\n"
@@ -115,8 +117,8 @@ function setup_linux {
     echo -e "[*]\c";color_print "green" "user.cfg";color_print "yellow" "created, Please add fake password for $username\n"
 
     setup_ssh_redirection_system;
-    bash ./setup_ssh_redirection_honeypot.sh system $pc1_ip;
-    bash ./setup_ssh_redirection_honeypot.sh pc1 $container_ip;
+    #bash ./setup_ssh_redirection_honeypot.sh system $pc1_ip;
+    #bash ./setup_ssh_redirection_honeypot.sh pc1 $container_ip;
 
 }
 
