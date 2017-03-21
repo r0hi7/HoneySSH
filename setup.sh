@@ -19,27 +19,32 @@ function satisfy_deps {
 
 function setup_ssh_redirection_system {
     echo -e "[*]\c";color_print "yellow" "Installing ssh redirection system  to trap the attacker"
-    lxc info pc1;
-    if [ $? -eq 0 ];then echo -e "[*]\c";color_print "red" "Conatainer Named with PC1 Alredy found..Removing\n";
-        lxc stop pc1;
-        lxc delete pc1;
+    lxc info $1 > /dev/null;
+    if [ $? -eq 0 ];then echo -e "[*]\c";color_print "red" "Conatainer Named with $1 Alredy found..Removing\n";
+        lxc stop $1;
+        lxc delete $1;
     fi
-    lxc launch ubuntu16 pc1;
-    lxc stop pc1;
-    echo -e "[*]\c"; color_print "green" "Adding PC1 to bridge [systemBr]";
-    lxc network attach systemBr pc1 default eth0;
-    lxc start pc1;
-    sleep 5
-    pc1_ip=$(lxc info pc1 | grep -m1 "eth0..inet" | cut -f 3)
-    echo -e "[*]\c"; color_print "green" "PC 1 got the IP ";color_print "red" $pc1_ip
     
-    lxc exec pc1 -- sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config
+    echo -e "[*]\c";color_print "green" "Creting a copy of system to $1\n";
+    lxc copy system $1;
+    lxc stop $1;
+    echo -e "[*]\c"; color_print "green" "Adding $1 to bridge [systemBr]";
+    lxc network attach systemBr $1 default eth0;
+    
+    lxc start $1;
+    sleep 5
+
+    ip=$(lxc info $1 | grep -m1 "eth0..inet" | cut -f 3)
+    echo -e "[*]\c"; color_print "green" "$1 the IP ";color_print "red" $ip
+    
+    lxc exec $1 -- sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config
    
-    lxc exec pc1 service sshd restart;
-    lxc exec pc1 -- groupdel admin
+    lxc exec $1 service sshd restart;
+    lxc exec $1 -- groupdel admin
   
-    lxc exec pc1 -- useradd -m admin -s /bin/bash
-    lxc exec pc1 -- bash -c "echo -e \"admin\nadmin\" | passwd admin"
+    lxc exec $1 -- useradd -m admin -s /bin/bash
+    lxc exec $1 -- bash -c "echo -e \"admin\nadmin\" | passwd admin"
+    lxc stop $1
 }
 
 
@@ -57,37 +62,37 @@ function setup_linux {
 	sudo apt update
     fi    
 
-    dpkg -s lxd
+    dpkg -s lxd > /dev/null
 
     if [ $? -ne 0 ]
     then
-        echo -e "[*]\c";color_print "red" "lxd not installed"
+        echo -e "[*]\c";color_print "red" "lxd not installed\n"
         color_print "green" "lxd will be installed"
         #apt-get update
-	apt-get install lxd -y
+	    apt-get install lxd -y
         lxd init
     fi
     #apt-get update && apt-get upgrade
     apt-get --only-upgrade install lxd -y
-    
+
     echo -e "[*]\c";color_print "green" "Chosen Imgae Ubuntu _ 16.04 x86]\n"
     lxc image copy ubuntu:x local: --alias ubuntu16
     #lxc launch ubuntu:16.04 system
-    lxc info system
+    lxc info system > /dev/null
     if [ $? -eq 0 ];then echo -e "[*]\c";color_print "red" "Conatainer Named with system Alredy found..Removing\n";
-        lxc stop system;
-        lxc delete system;
+        lxc stop system > /dev/null;
+        lxc delete system > /dev/null;
     fi
 
-    lxc launch ubuntu16 system
+    lxc launch ubuntu16 system 
     lxc stop system
-    echo -e "[*]\c";color_print "green" "Container is not attached to the Network..Bridging it[honeypotBr]\n"
+    echo -e "[*]\c";color_print "green" "Container is not attached to the Network..Bridging it[systemBr]\n"
     echo -e "[*]\c";color_print "yellow" "Checking if honeypot[systemBr] Bridge Exists or not"
-    lxc network show systemBr
+    lxc network show systemBr > /dev/null
     if [ $? -ne 0 ]
     then
         echo -e "[*]\c";color_print "green" "Bridge donot Exists creating"
-        lxc network create systemBr
+        lxc network create systemBr 
     fi
     lxc network attach systemBr system default eth0
     lxc start system
@@ -95,17 +100,15 @@ function setup_linux {
     sleep 5
     container_ip=$(lxc info system | grep -m1 eth0..inet | cut -f 3)
     #echo $container_ip
-    if ! invalidIp container_ip;then echo -e "[*]\c";color_print "red" "Unbale to fetch the IP of the container !\nSet it Manually if Possible";exit;fi
-    echo -e "[*]\c";color_print "green" "HoneyPot IP";color_print "red" $container_ip;echo -e "\n";
+    #if ! invalidIp container_ip;then echo -e "[*]\c";color_print "red" "Unbale to fetch the IP of the container !\nSet it Manually if Possible";exit;fi
+    #echo -e "[*]\c";color_print "green" "HoneyPot IP";color_print "red" $container_ip;echo -e "\n";
     container_port=22
     #sed -i "/ssh_addr =/c\ssh_addr = $ssh_addr" honssh.cfg
     #sed -i "//c\"
 
     #sed -i "/client_addr = /c\client_addr = $honey_ip" honssh.cf
-    sed -i "/honey_ip =/c\honey_ip = $container_ip" honssh.cfg
-    sed -i "/honey_port =/c\honey_port = $container_port" honssh.cfg
-
-    lxc exec system  -- sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config
+    
+    lxc exec system  -- sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config > /dev/null
     #lxc exec system cat /etc/ssh/sshd_config
     lxc exec system service sshd restart;
     lxc exec system -- groupdel admin
@@ -116,10 +119,38 @@ function setup_linux {
     echo -e "[$username]\nreal_password = $password\nfake_passwords = " > users.cfg
     echo -e "[*]\c";color_print "green" "user.cfg";color_print "yellow" "created, Please add fake password for $username\n"
 
-    setup_ssh_redirection_system;
-    #bash ./setup_ssh_redirection_honeypot.sh system $pc1_ip;
-    #bash ./setup_ssh_redirection_honeypot.sh pc1 $container_ip;
+    lxc exec system -- apt-get update
+    lxc exec system -- apt-get install autoconf make gcc libz-dev libssl-dev -y;
+    lxc stop system;
 
+    setup_ssh_redirection_system "sys";
+    setup_ssh_redirection_system "router";
+    setup_ssh_redirection_system "netbios";
+
+    lxc start system;
+    lxc start sys;
+    lxc start router;
+    lxc start netbios;
+
+    sleep 20;
+
+    sys_ip=$(lxc info sys | grep -m1 eth0..inet | cut -f 3)
+    router_ip=$(lxc info router_ip | grep -m1 eth0..inet | cut -f 3)
+    netbios_ip=$(lxc info netbios_ip | grep -m1 eth0..inet | cut -f 3)
+    container_ip=$(lxc info system| grep -m1 eth0..inet |cut -f 3)
+    
+    echo -e "[*]\c"; color_print "green" "System got the ip";color_print "red" $container_ip;
+    echo -e "[*]\c"; color_print "green" "System got the ip";color_print "red" $container_ip;
+    echo -e "[*]\c"; color_print "green" "System got the ip";color_print "red" $container_ip;
+    echo -e "[*]\c"; color_print "green" "System got the ip";color_print "red" $container_ip;
+    bash ./setup_ssh_redirection_honeypot.sh system $sys_ip;
+    bash ./setup_ssh_redirection_honeypot.sh sys $router_ip;
+    bash ./setup_ssh_redirection_honeypot.sh router $netbios_ip;
+    bash ./setup_ssh_redirection_honeypot.sh netbios $container_ip;
+    
+
+    sed -i "/honey_ip =/c\honey_ip = $container_ip" honssh.cfg
+    sed -i "/honey_port =/c\honey_port = $container_port" honssh.cfg
 }
 
 function setup_windows {
@@ -164,7 +195,10 @@ function setup_windows {
     echo -e "[*]\c";color_print "yellow" "The configuration has been setup Please Install bitwise ssh server in Windows Machine"
 }
 
+
+
 if [ $EUID -ne 0 ];then color_print "red" "Please Run as Root..\n";exit;fi
+satisfy_deps;
 
 echo -e "[*]\c"; color_print "green" "HoneySSH Config file missing creating one"
 ls honssh.cfg
