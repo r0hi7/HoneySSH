@@ -13,7 +13,7 @@ function invalidIp {
 }
 
 function satisfy_deps {
-    apt install `cat apt-packs`  
+    apt install `cat apt-packs` -y
     pip install -r pip-packs
 }
 
@@ -66,11 +66,11 @@ function setup_linux {
 
     if [ $? -ne 0 ]
     then
-        echo -e "[*]\c";color_print "red" "lxd not installed\n"
-        color_print "green" "lxd will be installed"
+        echo -e "[*]\c";color_print "red" "lxd not installed\n";
+        color_print "green" "lxd will be installed";
         #apt-get update
-	    apt-get install lxd -y
-        lxd init
+	    apt-get install lxd -y;
+        lxd init;
     fi
     #apt-get update && apt-get upgrade
     apt-get --only-upgrade install lxd -y

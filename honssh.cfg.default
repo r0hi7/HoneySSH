@@ -405,7 +405,7 @@ users_conf = users.cfg
 # input: true/false
 # required: YES
 # default: false
-passive = false
+passive = true
 
 # HonSSH wil attempt to download all wget files to a local store.
 # 
@@ -417,7 +417,7 @@ passive = false
 # input: true/false
 # required: YES
 # default: false
-active = false
+active = true
 
 #-----------------------#
 #      TEXT LOGGING     #
