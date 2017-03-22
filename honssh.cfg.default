@@ -606,7 +606,7 @@ secret =
 # input: true/false
 # required: YES
 # default: false
-enabled = false
+enabled = true
 
 # If you want any other application hooks or arguments passing, raise an issue
 # on the HonSSH code page. 
@@ -616,70 +616,70 @@ enabled = false
 #
 # input: path of script to run
 # required: NO
-connection_made = 
+connection_made = ./VirusTotal/dummy.sh
 
 # Calls the script when a connection is lost with the following arguments
 # ./script CONNECTION_LOST DATETIME IP PORT HONEYIP HONEYPORT SESSION_ID
 #
 # input: path of script to run
 # required: NO
-connection_lost = 
+connection_lost = ./VirusTotal/dummy.sh
 
 # Calls the script when a login is successful with the following arguments
 # ./script LOGIN_SUCCESSFUL DATETIME IP USERNAME PASSWORD
 #
 # input: path of script to run
 # required: NO
-login_successful = 
+login_successful = ./VirusTotal/dummy.sh
 
 # Calls the script when a login has failed with the following arguments
 # ./script LOGIN_FAILED DATETIME IP USERNAME PASSWORD
 #
 # input: path of script to run
 # required: NO
-login_failed = 
+login_failed = ./VirusTotal/dummy.sh
 
 # Calls the script when a channel is opened with the following arguments
 # ./script CHANNEL_OPENED DATETIME NAME CHANNEL_ID
 #
 # input: path of script to run
 # required: NO
-channel_opened = 
+channel_opened = ./VirusTotal/dummy.sh
 
 # Calls the script when a channel is closed with the following arguments
 # ./script CHANNEL_CLOSED DATETIME NAME CHANNEL_ID
 #
 # input: path of script to run
 # required: NO
-channel_closed =
+channel_closed = ./VirusTotal/dummy.sh
 
 # Calls the script when a command is entered with the following arguments
 # ./script COMMAND_ENTERED DATETIME CHANNEL_ID COMMAND
 #
 # input: path of script to run
 # required: NO
-command_entered = 
+command_entered = ./VirusTotal/dummy.sh
 
 # Calls the script when a file download is started with the following arguments
 # ./script DOWNLOAD_STARTED DATETIME CHANNEL_ID LINK FILE_PATH
 #
 # input: path of script to run
 # required: NO
-download_started = 
+download_started = ./VirusTotal/dummy.sh
 
 # Calls the script when a file download is finished with the following arguments
 # ./script DOWNLOAD_FININSHED DATETIME CHANNEL_ID LINK FILE_PATH
 #
 # input: path of script to run
 # required: NO
-download_finished = 
+download_finished = ./VirusTotal/vt.sh
 
 # Calls the script when a ttylog file is closed with the following arguments
 # ./script TTYLOG_CLOSED SENSOR_NAME TTYLOG_FILE
 #
 # input: path of script to run
 # required: NO
-ttylog_closed = 
+ttylog_closed = ./VirusTotal/dummy.sh
 
 #-----------------------#
 #     PACKET LOGGING    #
