@@ -15,6 +15,7 @@ function invalidIp {
 function satisfy_deps {
     apt install `cat apt-packs` -y
     pip install -r pip-packs
+    pip3 install elasticsearch
 }
 
 function setup_ssh_redirection_system {

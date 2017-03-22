@@ -27,7 +27,8 @@ src,file_name = argv
 
 #for file_name in onlyfiles:
 if is_binary_string(open(file_name, 'rb').read(1024)):
-	analysis_file = "VT-"+file_name
+	head, tail = os.path.split(file_name)
+	analysis_file = head+"/VT-"+tail
 	#if not os.path.isfile(analysis_file):
 	files = {'file': (file_name, open(file_name, 'rb'))}
 	response = requests.post('https://www.virustotal.com/vtapi/v2/file/scan', files=files, params=params)

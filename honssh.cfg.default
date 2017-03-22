@@ -672,7 +672,7 @@ download_started = ./VirusTotal/dummy.sh
 #
 # input: path of script to run
 # required: NO
-download_finished = ./VirusTotal/vt.sh
+download_finished = <full-path>/VirusTotal/vt.sh
 
 # Calls the script when a ttylog file is closed with the following arguments
 # ./script TTYLOG_CLOSED SENSOR_NAME TTYLOG_FILE

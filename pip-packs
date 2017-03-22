@@ -3,4 +3,4 @@ twisted>=17.0
 cryptography
 geoip
 elasticsearch
-
+awscli
