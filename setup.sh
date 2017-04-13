@@ -70,11 +70,15 @@ function setup_linux {
         echo -e "[*]\c";color_print "red" "lxd not installed\n";
         color_print "green" "lxd will be installed";
         #apt-get update
-	    apt-get install lxd -y;
+	apt install aptitude -y
+	aptitude install lxd -y;
         lxd init;
+    else
+	apt-get --only-upgrade install lxd -y
+	lxd init;
     fi
     #apt-get update && apt-get upgrade
-    apt-get --only-upgrade install lxd -y
+    #apt-get --only-upgrade install lxd -y
 
     echo -e "[*]\c";color_print "green" "Chosen Imgae Ubuntu _ 16.04 x86]\n"
     lxc image copy ubuntu:x local: --alias ubuntu16
@@ -110,6 +114,7 @@ function setup_linux {
     #sed -i "/client_addr = /c\client_addr = $honey_ip" honssh.cf
     
     lxc exec system  -- sed -i '/PasswordAuthentication no/c\PasswordAuthentication yes' /etc/ssh/sshd_config > /dev/null
+    lxc exec system  -- sed -i '/PermitRootLogin/c\PermitRootLogin yes' /etc/ssh/sshd_config > /dev/null
     #lxc exec system cat /etc/ssh/sshd_config
     lxc exec system service sshd restart;
     lxc exec system -- groupdel admin
@@ -128,9 +133,9 @@ function setup_linux {
     setup_ssh_redirection_system "router";
     setup_ssh_redirection_system "netbios";
 
-    lxc start system;
-    lxc start sys;
-    lxc start router;
+    lxc start system;sleep 10;
+    lxc start sys;sleep 10;
+    lxc start router;sleep 10;
     lxc start netbios;
 
     sleep 20;
