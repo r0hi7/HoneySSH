@@ -4,6 +4,7 @@
 fuser -k 22/tcp
 lxc delete system -f  
 lxc launch ubuntu16 system
+sleep 5
 lxc stop system 
 lxc network attach systemBr system default eth0
 lxc start system
@@ -21,7 +22,7 @@ lxc exec system  -- bash -c "echo -e \"fakeroot\nfakeroot\" | passwd root"
 lxc exec system -- service ssh restart 
 #/root/HoneySSH/setup_ssh_redirection_honeypot.sh system $sys_ip
 
-sed -i "/honey_ip =/c\honey_ip = $ip" honssh.cfg
+sed -i "/honey_ip =/c\honey_ip = $ip" /root/HoneySSH/honssh.cfg
 /root/HoneySSH/honsshctrl.sh start
 
 
