@@ -1,7 +1,7 @@
 lxc stop system
-lxc copy system system2
 lxc delete system 
-lxc copy system2 system
+lxc lauch ubuntu16 system
+lxc stop system 
 lxc network attach systemBr system default eth0
 lxc start system
 sleep 5 
