@@ -2,7 +2,11 @@ lxc stop system
 lxc copy system system2
 lxc delete system 
 lxc copy system2 system
-lxc attach network systemBr system default eth0
+lxc network attach systemBr system default eth0
+lxc start system
+sleep 5 
+echo "Done"
+
 ip=$(lxc info system | grep -m1 "eth0..inet" | cut -f 3)
 sys_ip=$(lxc info sys | grep -m1 "eth0..inet" | cut -f 3)
 
