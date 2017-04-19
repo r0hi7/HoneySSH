@@ -1,3 +1,7 @@
+/root/HoneySSH/honsshctrl.sh stop
+/root/HoneySSH/honsshctrl.sh clean 
+
+fuser -k 22/tcp
 lxc delete system -f  
 lxc launch ubuntu16 system
 lxc stop system 
@@ -18,8 +22,6 @@ lxc exec system -- service ssh restart
 #/root/HoneySSH/setup_ssh_redirection_honeypot.sh system $sys_ip
 
 sed -i "/honey_ip =/c\honey_ip = $ip" honssh.cfg
-/root/HoneySSH/honsshctrl.sh stop
-/root/HoneySSH/honsshctrl.sh clean 
 /root/HoneySSH/honsshctrl.sh start
 
 
